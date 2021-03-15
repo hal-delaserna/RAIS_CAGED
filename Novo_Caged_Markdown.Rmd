@@ -1,5 +1,5 @@
 ---
-title: "mercado de trabalho"
+title: "Mercado de trabalho na mineração 2020: saldos de movimentação"
 output: 
   html_document: 
     theme: journal
@@ -16,8 +16,8 @@ library(tidyverse)
 library(lubridate)
 library(knitr)
 
-readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
-
+movimentacao <- 
+  readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
 
 
 source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
@@ -34,138 +34,6 @@ source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
 #		09.9	Atividades de apoio à extração de minerais, exceto petróleo e gás natural	|
 #___________________________________________________________________________________|
 
-# _____ estabelecimentos ----
-# arquivos <- c(
-#   "CAGEDESTAB202001.txt",
-#   "CAGEDESTAB202002.txt",
-#   "CAGEDESTAB202003.txt",
-#   "CAGEDESTAB202004.txt",
-#   "CAGEDESTAB202005.txt",
-#   "CAGEDESTAB202006.txt",
-#   "CAGEDESTAB202007.txt",
-#   "CAGEDESTAB202008.txt",
-#   "CAGEDESTAB202009.txt",
-#   "CAGEDESTAB202010.txt",
-#   "CAGEDESTAB202011.txt",
-#   "CAGEDESTAB202012.txt"
-#   )
-# 
-# lista <- list()
-# for (i in 1:length(arquivos)) {
-# lista[[i]] <-
-#   read.table(
-#     paste('./CSV_Data/RAIS_CAGED/Novo_Caged/', arquivos[[i]], sep = ""),
-#     header = TRUE,
-#     sep = ";",
-#     dec = ".",
-#     colClasses = c("character", "character", "character", "character", "character", "integer", "integer", "integer", "character", "integer", "character", "character", "character"),
-#     stringsAsFactors = FALSE,
-#     encoding = "UTF-8"
-#   )
-# }
-# 
-# estabelecimentos <- 
-#   do.call("rbind", lista)
-# rm(lista)
-
-# _______________________________________________________________________
-#   O número de estabelecimentos que apresentam declarações à Rais       | 
-#   difere ano a ano, o que dificulta discriminar se a variação do       |
-#   emprego se deve a um real aumento ou redução decorrente da situação  | 
-#   do mercado de trabalho e/ou a um melhor desempenho na declaração.    |
-#   Opte por uma amostra longitudinal de empresas que declaram os dados. |
-# _______________________________________________________________________|
-
-
-# _____ movimentação ----
-
-arquivos <- c(
-  "CAGEDMOV202001.txt",
-  "CAGEDMOV202002.txt",
-  "CAGEDMOV202003.txt",
-  "CAGEDMOV202004.txt",
-  "CAGEDMOV202005.txt",
-  "CAGEDMOV202006.txt",
-  "CAGEDMOV202007.txt",
-  "CAGEDMOV202008.txt",
-  "CAGEDMOV202009.txt",
-  "CAGEDMOV202010.txt",
-  "CAGEDMOV202011.txt",
-  "CAGEDMOV202012.txt"
-  )
-
-
-lista <- list()
-for (i in 1:length(arquivos)) {
-  lista[[i]] <-
-    read.table(
-      paste('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/Novo_Caged/', arquivos[[i]], sep = ""),
-      header = TRUE,
-      sep = ";",
-      dec = ".",
-      quote = "",
-      colClasses = c(
-        "character",	#	competência
-        "NULL",	      #	região
-        "character",	#	uf
-        "character",	#	município
-        "character",	#	seção
-        "integer", 	  #	subclasse
-        "integer",	  #	saldomovimentação
-        "character",	#	cbo2002ocupação
-        "character",	#	categoria
-        "character",	#	graudeinstrução
-        "NULL",	      #	idade
-        "NULL",	      #	horascontratuais
-        "NULL",	#	raçacor
-        "NULL",	#	sexo
-        "NULL",	#	tipoempregador
-        "NULL",	#	tipoestabelecimento
-        "NULL",	#	tipomovimentação
-        "NULL",	#	tipodedeficiência
-        "NULL",	#	indtrabintermitente
-        "NULL",	#	indtrabparcial
-        "numeric",	#	salário
-        "NULL",	#	tamestabjan
-        "NULL",	#	indicadoraprendiz
-        "NULL"	#	fonte
-      ),
-      stringsAsFactors = FALSE,
-      encoding = "UTF-8"
-      )
-}
-
-movimentacao <- 
-  do.call("rbind", lista)
-rm(lista)
-
-
-# ____ impondo trimestre
-movimentacao$trimestre <-
-  lubridate::quarter(
-    lubridate::ymd(
-      paste(str_extract(movimentacao$competência, pattern = "^...."), str_extract(movimentacao$competência, pattern = "..$"), "1", sep = "_")
-    ), with_year = TRUE)
-
-# ____ impondo semestre
-movimentacao$semestre <-
-  lubridate::semester(
-    lubridate::ymd(
-      paste(str_extract(movimentacao$competência, pattern = "^...."), str_extract(movimentacao$competência, pattern = "..$"), "1", sep = "_")
-      ), with_year = TRUE)
-    
-# ____ impondo mês.ANO
-movimentacao$competência <-
-  lubridate::ymd(
-    paste(str_extract(movimentacao$competência, pattern = "^...."), str_extract(movimentacao$competência, pattern = "..$"), "1", sep = "_")
-  )
-
-# _____ Geocod  ----
-geocod <- 
-  read.table(file = "D:/Users/humberto.serna/Documents/CSV_Data/GeoCodigos_IBGE.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
-             colClasses = "character", encoding = 'iso-8859-1', quote = "") %>% as_tibble()
-geocod$GEOCOD <- 
-  str_extract(geocod$GEOCOD, "......")
 
 # ______________________________________________________________________________________________----
 ```
@@ -223,17 +91,6 @@ subclasses_alvo_SECAO_B <-
 #         df <- estabelecimentos[estabelecimentos$subclasse %in% subclasses_alvo, ]
           df_Extrativa <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
           
-
-# _____ junção coluna de municípios
-
-df_Extrativa <- 
-  left_join(df_Extrativa, geocod[, c("UF_sigla", "GEOCOD", "Município")], by = c("município" = "GEOCOD"))
-
-# _____ junção Grupo - Subclasse
-df_Extrativa <- 
-  left_join(df_Extrativa, cnae[,c("grupo", "classe", "subclasse", "denominação")], by = c("subclasse" = "subclasse"))   
-
-
 ```
 
 ```{r Extrativa_BR_Grupo_semestre, echo=FALSE, message=FALSE}
@@ -407,32 +264,6 @@ df_Extrativa_Município_Subclasse_Semestre <-
 ```
  
 
-
-
-
-
- UFs e Grupos CNAEs com MAIS contratações 
- 
- `r head(df_Extrativa_UF_Grupo_Semestre)`
- 
- 
- UFs e Grupos CNAEs com MENOS contratações 
- 
- `r tail(df_Extrativa_UF_Grupo_Semestre)`
-
-UF's
-		mais contrataram:
-		menos contrataram:
-
-
-* subclasses 
-		mais contrataram: **Extração de minério de ferro**, **Extração de calcário e dolomita e beneficiamento associado** e **Extração de minério de metais preciosos **
-		menos contrataram: **Extração de granito e beneficiamento associado**, **Extração de outros minerais não metálicos não especificados anteriormente** e **Atividades de apoio à extração de minerais metálicos não ferrosos**
-
-
-
-
-
 ```{r INDÚSTRIA DE TRANSFORMAÇÃO (MINERAL): subclasses alvo, include=FALSE}
 
 # _____ lista subclasses_alvo na seção B (Extrativa Mineral - Exceto petróleo & Gás) ----
@@ -486,17 +317,6 @@ subclasses_alvo_SECAO_B <-
 #         df <- estabelecimentos[estabelecimentos$subclasse %in% subclasses_alvo, ]
           df_Transformação <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
           
-
-# _____ junção coluna de municípios
-
-df_Transformação <- 
-  left_join(df_Transformação, geocod[, c("UF_sigla", "GEOCOD", "Município")], by = c("município" = "GEOCOD"))
-
-# _____ junção Grupo - Subclasse
-df_Transformação <- 
-  left_join(df_Transformação, cnae[,c("grupo", "classe", "subclasse", "denominação")], by = c("subclasse" = "subclasse"))   
-
-
 ```
 
 ```{r Transformação_BR_Grupo_semestre, echo=FALSE, message=FALSE}
@@ -669,4 +489,71 @@ df_Transformação_Município_Subclasse_Semestre <-
 
 ```
  
+
+
+### Extrativa por Grupo e Semestre
+```{r echo=FALSE} 
+kable(head(df_Extrativa_BR_Grupo_semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Extrativa_BR_Grupo_semestre), caption = "MENORES", allign = "c")
+```
+
+
+### Extrativa por Município, Grupo e Semestre
+```{r echo=FALSE} 
+kable(head(df_Extrativa_Município_Grupo_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Extrativa_Município_Grupo_Semestre), caption = "MENORES", allign = "c")
+```
+
+### Extrativa por Município, Subclasse e Semestre 
+```{r echo=FALSE} 
+kable(head(df_Extrativa_Município_Subclasse_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Extrativa_Município_Subclasse_Semestre), caption = "MENORES", allign = "c")
+```
+
+### Extrativa por UF, Grupo e Semestre
+```{r echo=FALSE} 
+kable(head(df_Extrativa_UF_Grupo_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Extrativa_UF_Grupo_Semestre), caption = "MENORES", allign = "c")
+```
+
+
+### Extrativa por UF, Subclasse e Semestre
+```{r echo=FALSE} 
+kable(head(df_Extrativa_UF_Subclasse_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Extrativa_UF_Subclasse_Semestre), caption = "MENORES", allign = "c")
+```
+
+### Transformação BR por Grupo e semestre
+```{r echo=FALSE} 
+kable(head(df_Transformação_BR_Grupo_semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Transformação_BR_Grupo_semestre), caption = "MENORES", allign = "c")
+```
+
+
+### Transformação por Município, Grupo e Semestre
+```{r echo=FALSE} 
+kable(head(df_Transformação_Município_Grupo_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Transformação_Município_Grupo_Semestre), caption = "MENORES", allign = "c")
+```
+
+
+### Transformação por Município, Subclasse e Semestre
+```{r echo=FALSE} 
+kable(head(df_Transformação_Município_Subclasse_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Transformação_Município_Subclasse_Semestre), caption = "MENORES", allign = "c")
+```
+
+
+### Transformação por UF, Grupo e Semestre
+```{r echo=FALSE} 
+kable(head(df_Transformação_UF_grupo_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Transformação_UF_grupo_Semestre), caption = "MENORES", allign = "c")
+```
+
+
+### Transformação por UF, Subclasse e Semestre
+```{r echo=FALSE} 
+kable(head(df_Transformação_UF_Subclasse_Semestre), caption = "MAIORES", allign = "c")
+kable(tail(df_Transformação_UF_Subclasse_Semestre), caption = "MENORES", allign = "c")
+```
 
