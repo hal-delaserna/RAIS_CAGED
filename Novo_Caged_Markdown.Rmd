@@ -24,16 +24,12 @@ source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
 
 # CUIDADO ! ATENÇÃO! OS MICRODADOS ESTÃO COM SUBCLASSE SEM '0' NA FRENTE. HÁ SUBCLASSES COM 7 E OUTRA COM 6 DÍGITOS....
 
-#___Grupo	denominação_______________________________________________________________
-#                                                                                   |
-#		05.0	Extração de carvão mineral													                      |
-#		07.1	Extração de minério de ferro  												                    |
-#		07.2	Extração de minerais metálicos não ferrosos									              |
-#		08.1	Extração de pedra, areia e argila											                    |
-#		08.9	Extração de outros minerais não metálicos									                |
-#		09.9	Atividades de apoio à extração de minerais, exceto petróleo e gás natural	|
-#___________________________________________________________________________________|
 
+# delmitando por semestre ----
+
+movimentacao <- 
+  movimentacao[movimentacao$semestre == '2020.2',]
+  
 
 # ______________________________________________________________________________________________----
 ```
@@ -98,7 +94,9 @@ subclasses_alvo_SECAO_B <-
 df_Extrativa_BR_Grupo_semestre <-
   left_join(
     summarise(
-      group_by(df_Extrativa[df_Extrativa$semestre %in% c('2020.1', '2020.2'), c(
+      group_by(df_Extrativa[df_Extrativa$semestre %in% c(
+        '2020.1', 
+        '2020.2'), c(
         "uf",
         "município",
         "seção",
