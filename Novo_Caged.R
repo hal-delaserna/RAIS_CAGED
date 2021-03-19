@@ -146,7 +146,7 @@ summarise(movimentacao,
 # _____ delimitando df por subclasses alvo na Seção C ----
 
 #         df_Transformacao <- estabelecimentos[estabelecimentos$subclasse %in% subclasses_alvo, ]
-df_Transformacao <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
+df_Transformacao <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_C, ]
 
 
 # _____ saldo_movimentação ----
