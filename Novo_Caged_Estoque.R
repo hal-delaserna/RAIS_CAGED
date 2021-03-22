@@ -7,9 +7,9 @@ library(lubridate)
                         
 # CARREGAMENTO DOS MICRODADOS E PREPARAÇÃO DA BASE ----
 
- # CNAE 2.3 ----
+ # CNAE 2.0 e 2.3 ----
  
-  source('./CSV_Data/RAIS_CAGED/CNAE_2_3.R')
+  source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
  
 cnae <- 
    CNAE_Subclasses_2_0
@@ -111,7 +111,7 @@ cnae <-
  for (i in 1:length(arquivos)) {
    lista[[i]] <-
      read.table(
-       paste('./CSV_Data/RAIS_CAGED/Novo_Caged/', arquivos[[i]], sep = ""),
+       paste('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/Novo_Caged/', arquivos[[i]], sep = ""),
        header = TRUE,
        sep = ";",
        dec = ".",
@@ -139,33 +139,40 @@ cnae <-
  rm(lista)
  
  
- select(estoque_trabalhadores, everything()) %>% group_by(data) %>% summarise(sum(estoqueref))
- 
- 
  
  # delimitando pelas subclasses alvo das seções B e C ----
+
+ estoque_trabalhadores <-
+    estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% c(subclasses_alvo_SECAO_B, 
+                                                                     subclasses_alvo_SECAO_C
+                                                                     ), ]
+
+# Descrição subclasses e Grupos
  
  estoque_trabalhadores <- 
-    estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% c(subclasses_alvo_SECAO_B, subclasses_alvo_SECAO_C),]
- 
- 
- # Geocod e junção coluna de municípios ----
+    left_join(estoque_trabalhadores, 
+              CNAE_Subclasses_2_0, by = c('cnae20subclas' = 'subclasse')
+              )
+
+ # Geocod e junção coluna de municípios - UF ----
  geocod <- 
-   read.table(file = "./CSV_Data/GeoCodigos_IBGE.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
-              colClasses = "character", encoding = 'iso-8859-1', quote = "") %>% as_tibble()
+   read.table(file = "D:/Users/humberto.serna/Documents/CSV_Data/GeoCodigos_IBGE.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
+              colClasses = "character", encoding = 'iso-8859-1', quote = "") 
  geocod$GEOCOD <- 
    str_extract(geocod$GEOCOD, "......")
  
- estoque_trabalhadores <- 
+ geocod$GEOCOD <- 
+    str_extract(geocod$GEOCOD, "......")
+ 
+  estoque_trabalhadores <- 
    left_join(estoque_trabalhadores, geocod[, c("UF_sigla", "GEOCOD", "Município")], by = c("codmun" = "GEOCOD"))
  
- 
- # estoque de trabalhadore no início de cada ano 
- 
- summarise(group_by(estoque_trabalhadores, data), sum(estoqueref))
- 
+
+# Estoque de trabalhadore no início de cada ano 
+ # 
+# summarise(group_by(estoque_trabalhadores, data), sum(estoqueref))
  
  
  # exportando em RDS ---- 
  
- saveRDS(movimentacao, file = "./CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C_ascii.RDATA", ascii = TRUE)
+# saveRDS(movimentacao, file = "./CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
