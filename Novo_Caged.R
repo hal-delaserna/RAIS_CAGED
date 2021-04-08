@@ -15,6 +15,9 @@ geocod$GEOCOD <-
 movimentacao <- 
   readRDS(file = "./CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
 
+# estabelecimento <- 
+#  readRDS(file = "./CSV_Data/Novo_Caged_microdados_ESTABELECIMENTOS_2020_secoes_CNAE23_B_C.RDATA")
+
 
 # CUIDADO ! ATENÇÃO! NOS MICRODADOS A SUBCLASSE ESTÁ SEM '0' NA FRENTE. SUBCLASSES da Seção B com 6 dígitos. E na C, com 7 ....
 
@@ -122,8 +125,8 @@ subclasses_alvo_SECAO_C <-
 
 # _____ delimitando df por subclasses alvo na seção B (Extrativa Mineral - Exceto petróleo & Gás) ----
 
-#         df <- estabelecimentos[estabelecimentos$subclasse %in% subclasses_alvo, ]
-          df_Extrativa <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
+  #       df_Extrativa <- estabelecimento[estabelecimento$subclasse %in% subclasses_alvo_SECAO_B, ]
+         df_Extrativa <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
           
 
 
@@ -183,9 +186,9 @@ df_Extrativa_resultado <-
                 #     indicadoraprendiz,
                 #     fonte
                       ),
-  "Saldo_da_Movimentação" = sum(saldomovimentação),
-  "salário_mediana" = median(salário),
-  "salário_medio" = mean(salário))
+  "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+  "salário_mediana" = median(salário, na.rm = TRUE),
+  "salário_medio" = mean(salário, na.rm = TRUE))
 
 
                 #: exclua-me
@@ -450,40 +453,88 @@ BR <-
    cnae[cnae$classe %in% classes_alvo_SECAO_C & cnae$subclasse != 0, c("subclasse")]
  
  
- # carregamento ----
- # _____ estabelecimentos ----
- # arquivos <- c(
- #   "CAGEDESTAB202001.txt",
- #   "CAGEDESTAB202002.txt",
- #   "CAGEDESTAB202003.txt",
- #   "CAGEDESTAB202004.txt",
- #   "CAGEDESTAB202005.txt",
- #   "CAGEDESTAB202006.txt",
- #   "CAGEDESTAB202007.txt",
- #   "CAGEDESTAB202008.txt",
- #   "CAGEDESTAB202009.txt",
- #   "CAGEDESTAB202010.txt",
- #   "CAGEDESTAB202011.txt",
- #   "CAGEDESTAB202012.txt"
- #   )
- # 
- # lista <- list()
- # for (i in 1:length(arquivos)) {
- # lista[[i]] <-
- #   read.table(
- #     paste('./CSV_Data/RAIS_CAGED/Novo_Caged/', arquivos[[i]], sep = ""),
- #     header = TRUE,
- #     sep = ";",
- #     dec = ".",
- #     colClasses = c("character", "character", "character", "character", "character", "integer", "integer", "integer", "character", "integer", "character", "character", "character"),
- #     stringsAsFactors = FALSE,
- #     encoding = "UTF-8"
- #   )
- # }
- # 
- # estabelecimentos <- 
- #   do.call("rbind", lista)
- # rm(lista)
+# ******************************  CARREGAMENTO ****************************** ----
+#  _____ ***** ESTABELECIMENTOS ***** ----
+  arquivos <- c(
+    "CAGEDESTAB202001.txt",
+    "CAGEDESTAB202002.txt",
+    "CAGEDESTAB202003.txt",
+    "CAGEDESTAB202004.txt",
+    "CAGEDESTAB202005.txt",
+    "CAGEDESTAB202006.txt",
+    "CAGEDESTAB202007.txt",
+    "CAGEDESTAB202008.txt",
+    "CAGEDESTAB202009.txt",
+    "CAGEDESTAB202010.txt",
+    "CAGEDESTAB202011.txt",
+    "CAGEDESTAB202012.txt"
+    )
+  
+  lista <- list()
+  for (i in 1:length(arquivos)) {
+  lista[[i]] <-
+    read.table(
+      paste('./CSV_Data/RAIS_CAGED/Novo_Caged/', arquivos[[i]], sep = ""),
+      header = TRUE,
+      sep = ";",
+      dec = ".",
+      colClasses = c("character", "character", "character", "character", "character", "integer", "integer", "character", "integer", "character", "character", "character"),
+      stringsAsFactors = FALSE,
+      encoding = "UTF-8"
+    )
+  }
+  
+  estabelecimentos <- 
+    do.call("rbind", lista)
+  rm(lista)
+  
+  
+  # delimitando pelas subclasses alvo das seções B e C ----
+  
+  estabelecimentos <- 
+    estabelecimentos[estabelecimentos$subclasse %in% c(subclasses_alvo_SECAO_B, subclasses_alvo_SECAO_C),]
+  
+  # ____ impondo trimestre
+  estabelecimentos$trimestre <-
+    lubridate::quarter(
+      lubridate::ymd(
+        paste(str_extract(estabelecimentos$competência, pattern = "^...."), str_extract(estabelecimentos$competência, pattern = "..$"), "1", sep = "_")
+      ), with_year = TRUE)
+  
+  # ____ impondo semestre
+  estabelecimentos$semestre <-
+    lubridate::semester(
+      lubridate::ymd(
+        paste(str_extract(estabelecimentos$competência, pattern = "^...."), str_extract(estabelecimentos$competência, pattern = "..$"), "1", sep = "_")
+      ), with_year = TRUE)
+  
+  # ____ impondo mês.ANO
+  estabelecimentos$competência <-
+    lubridate::ymd(
+      paste(str_extract(estabelecimentos$competência, pattern = "^...."), str_extract(estabelecimentos$competência, pattern = "..$"), "1", sep = "_")
+    )
+  
+  
+  # _____ junção grupo - subclasse ----
+  estabelecimentos <- 
+    left_join(estabelecimentos, cnae[,c("grupo", "classe", "subclasse", "denominação")], by = c("subclasse"))   
+  
+  
+  # Geocod e junção coluna de municípios ----
+  geocod <- 
+    read.table(file = "./CSV_Data/GeoCodigos_IBGE.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
+               colClasses = "character", encoding = 'iso-8859-1', quote = "")
+  geocod$GEOCOD <- 
+    str_extract(geocod$GEOCOD, "......")
+  
+  estabelecimentos <- 
+    left_join(estabelecimentos, geocod[, c("UF_sigla", "GEOCOD", "Município")], by = c("município" = "GEOCOD"))
+  
+  
+  # exportando em RDS ---- 
+  
+  saveRDS(estabelecimentos, file = "./CSV_Data/Novo_Caged_microdados_ESTABELECIMENTOS_2020_secoes_CNAE23_B_C.RDATA")
+  
  
  # _______________________________________________________________________
  #   O número de estabelecimentos que apresentam declarações à Rais       | 
@@ -494,7 +545,7 @@ BR <-
  # _______________________________________________________________________|
  
  
- # _____ movimentação ----
+ # _____ ***** MOVIMENTAÇAO ***** ----
  
  arquivos <- c(
    "CAGEDMOV202001.txt",
@@ -560,7 +611,10 @@ BR <-
  # delimitando pelas subclasses alvo das seções B e C ----
  
  movimentacao <- 
-   movimentacao[movimentacao$subclasse %in% c(subclasses_alvo_SECAO_B, subclasses_alvo_SECAO_C),]
+   movimentacao[movimentacao$subclasse %in% c(
+                                                 subclasses_alvo_SECAO_B), 
+                                                # subclasses_alvo_SECAO_C),
+                                                                              ]
  
  # ____ impondo trimestre
  movimentacao$trimestre <-
@@ -609,9 +663,10 @@ BR <-
 
  summarise(
    group_by(
-     df_Extrativa, 
+     movimentacao, 
      semestre),
-   sum(saldomovimentação))
+   sum(saldomovimentação),
+   mean(salário, na.rm = TRUE, trim = 0.01)) %>% kable()
  
  
 #  semestre `sum(saldomovimentação)`

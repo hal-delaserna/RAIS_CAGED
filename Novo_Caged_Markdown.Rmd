@@ -4,7 +4,7 @@ output:
   html_document: 
     theme: journal
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -24,19 +24,17 @@ movimentacao <-
 #movimentacao <- 
 #  movimentacao[movimentacao$semestre == '2020.2',]
 
-# Estoque de Trabalhadores 
-  source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/Novo_Caged_Estoque.R')
+# Estoque de Trabalhadores ----
+   source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/Novo_Caged_Estoque.R')
 
-# CNAE 2.3
+# CNAE 2.3 ----
 source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
 
 # CUIDADO ! ATENÇÃO! OS MICRODADOS ESTÃO COM SUBCLASSE SEM '0' NA FRENTE. HÁ SUBCLASSES COM 7 E OUTRA COM 6 DÍGITOS....
-
-
 # ______________________________________________________________________________________________----
 ```
 
-```{r EXTRATIVA MINERAL: subclasses alvo, include=FALSE}
+```{r EXTRATIVA MINERAL: subclasses alvo, include=TRUE}
 
 # _____ lista subclasses_alvo na seção B (Extrativa Mineral - Exceto petróleo & Gás) ----
 subclasses_alvo_SECAO_B <-                    
@@ -85,11 +83,15 @@ subclasses_alvo_SECAO_B <-
   )
 
 # _____ delimitando df por subclasses alvo
-
-#         df <- estabelecimentos[estabelecimentos$subclasse %in% subclasses_alvo, ]
           df_Extrativa <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
-          
+    
 ```
+
+### Extrativa por Grupo e Semestre
+
+Nacionalmente, os grupos que mais contrataram foram a extração de Extração de minério de ferro (2398) e Extração de pedra, areia e argila (1875). O único grupo com saldo de fechamento de vagas foi a Extração de carvão mineral (-31).
+
+Na Extração de minério de ferro, as UFs com mais contratações são PA (1141) e MG (1046). Seguido por Extração de pedra, areia e argila, em MT (-85).
 
 ```{r Extrativa_BR_Grupo_semestre, echo=FALSE, message=FALSE}
 
@@ -111,9 +113,9 @@ df_Extrativa_BR_Grupo_semestre <-
         "trimestre",
         'competência'
       )], grupo, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -127,7 +129,12 @@ df_Extrativa_BR_Grupo_semestre <-
     "salário_medio"
   )]
 
+
+kable(arrange(df_Extrativa_BR_Grupo_semestre, desc(semestre), desc(Saldo_da_Movimentação)), allign = "c")
+
 ```
+
+### Saldos da Extrativa por UF e Semestre
 
 ```{r Extrativa_UF_semestre, echo=FALSE, message=FALSE}
 
@@ -148,9 +155,9 @@ df_Extrativa_UF_semestre <-
         "trimestre",
         'competência'
       )], UF_sigla, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
       )[, c(
     "UF_sigla",
     "semestre",
@@ -159,7 +166,12 @@ df_Extrativa_UF_semestre <-
     "salário_medio"
   )] 
 
+
+kable(arrange(df_Extrativa_UF_semestre, desc(semestre), desc(Saldo_da_Movimentação)), allign = "c")
+
 ```
+
+### Variação percentual e Estoques por UF na Extrativa Mineral
 
 ```{r Extrativa_Variacao_Estoque_II_SEM, echo=FALSE, message=FALSE}
 
@@ -188,7 +200,21 @@ a$Variacao_relativa_Estoque_II_SEM <-
 
 df_Extrativa_Variacao_Estoque_II_SEM <- a
 
+
+kable(arrange(df_Extrativa_Variacao_Estoque_II_SEM, desc(Variacao_relativa_Estoque_II_SEM)), allign = "c")
+
+
 ```
+
+### Estoque por UF e semestre na Extrativa Mineral
+
+```{r  , echo=FALSE, message=FALSE}
+
+kable(summarise(group_by(estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_B,], data, UF_sigla), sum(estoqueref)))
+
+```
+
+### Saldos na Extrativa por UF, Grupo e Semestre
 
 ```{r Extrativa_UF_Grupo_Semestre, echo=FALSE, message=FALSE}
 
@@ -205,9 +231,9 @@ df_Extrativa_UF_Grupo_Semestre <-
         "semestre",
         "trimestre"
       )], grupo, UF_sigla, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -221,7 +247,12 @@ df_Extrativa_UF_Grupo_Semestre <-
     "salário_medio"
   )] 
 
+
+kable(head(arrange(df_Extrativa_UF_Grupo_Semestre, desc(Saldo_da_Movimentação)), 10), caption = "Maiores", allign = "c")
+
 ```
+
+### Extrativa por UF, Subclasse e Semestre
 
 ```{r Extrativa_UF_Subclasse_Semestre, echo=FALSE, message=FALSE}
 
@@ -239,9 +270,9 @@ df_Extrativa_UF_Subclasse_Semestre <-
         "semestre",
         "trimestre"
       )], subclasse, UF_sigla, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe != 0 &
@@ -255,7 +286,18 @@ df_Extrativa_UF_Subclasse_Semestre <-
     "salário_medio"
   )] 
 
+
+kable(head(arrange(df_Extrativa_UF_Subclasse_Semestre, desc(Saldo_da_Movimentação)), 10), caption = "Maiores", allign = "c")
+
 ```
+
+### Extrativa por Município, Grupo e Semestre
+
+Metade das contratações no grupo Extração de minério de ferro centraram-se nos municípios de Parauapebas (719), Canaã dos Carajás (257) e Nova Lima (252).
+
+Mas também foi na Extração de minério de ferro que um município acusou mais fechamento de vagas, em Congonhas (-253)
+
+Por Subclasse e município, vemos que a Extração de minério de ferro, em Parauapebas, foi a que mais contratou (719), seguida de Canaã dos Carajás (257) e Nova Lima (252). Enquanto a que mais fechou vagas foi a Extração de minério de ferro, em Congonhas (-253).
 
 ```{r Extrativa_Município_Grupo_Semestre, echo=FALSE, message=FALSE}
 
@@ -273,9 +315,9 @@ df_Extrativa_Município_Grupo_Semestre <-
         "semestre",
         "trimestre"
       )], grupo, Município),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -289,7 +331,15 @@ df_Extrativa_Município_Grupo_Semestre <-
     "salário_medio"
   )] 
 
+
+kable(head(arrange(df_Extrativa_Município_Grupo_Semestre, desc(Saldo_da_Movimentação)), 10), caption = "Maiores", allign = "c")
+
+
+kable(head(arrange(df_Extrativa_Município_Grupo_Semestre, Saldo_da_Movimentação), 5), caption = "Menores", allign = "c")
+
 ```
+
+### Extrativa por Município, Subclasse e Semestre
 
 ```{r Extrativa_Município_Subclasse_Semestre, echo=FALSE, message=FALSE}
 
@@ -307,9 +357,9 @@ df_Extrativa_Município_Subclasse_Semestre <-
         "semestre",
         "trimestre"
       )], subclasse, Município),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe != 0 &
@@ -323,49 +373,64 @@ df_Extrativa_Município_Subclasse_Semestre <-
     "salário_medio"
   )] 
 
+kable(head(arrange(df_Extrativa_Município_Subclasse_Semestre, desc(Saldo_da_Movimentação)), 10), allign = "c")
+
 ```
 
-```{r INDÚSTRIA DE TRANSFORMAÇÃO (MINERAL): subclasses alvo, include=FALSE}
+```{r INDÚSTRIA DE TRANSFORMAÇÃO (MINERAL): subclasses alvo, include=TRUE}
 
  # _____ Lista classes Alvo na Seção C (Indústria de Transformação Relacionada não associada/consecutiva à mineração) ----
  
  classes_alvo_SECAO_C <- 
-   c("20126",	        #          Fabricação de Intermediários para Fertilizantes 
-     "20134",		          #          Fabricação de Adubos e Fertilizantes 
-     "23206",		          #          Fabricação de Cimento 
-     "23303",		          #          Fabricação de Artefatos de Concreto, Cimento, Fibrocimento, Gesso e Materiais Semelhantes 
-     "23419",		          #          Fabricação de Produtos Cerâmicos Refratários 
-     "23427",		          #          Fabricação de Produtos Cerâmicos NãoRefratários para Uso Estrutural na Construção 
-     "23494",		          #          Fabricação de Produtos Cerâmicos NãoRefratários não Especificados Anteriormente 
-     "23915",		          #          Aparelhamento e Outros Trabalhos em Pedras 
-     "23923",		          #          Fabricação de Cal e Gesso 
-     "23991",		          #          Fabricação de Produtos de Minerais NãoMetálicos não Especificados Anteriormente 
-     "24113",		          #          Produção de FerroGusa 
-     "24121",		          #          Produção de Ferroligas 
-     "24211",		          #          Produção de SemiAcabados de Aço 
-     "24229",		          #          Produção de Laminados Planos de Aço 
-     "24237",		          #          Produção de Laminados Longos de Aço 
-     "24245",		          #          Produção de Relaminados, Trefilados e Perfilados de Aço 
-     "24318",		          #          Produção de Tubos de Aço com Costura 
-     "24393",		          #          Produção de Outros Tubos de Ferro e Aço 
-     "24415",		          #          Metalurgia do Alumínio e Suas Ligas 
-     "24423",		          #          Metalurgia dos Metais Preciosos 
-     "24431",		          #          Metalurgia do Cobre 
-     "24491",		          #          Metalurgia dos Metais NãoFerrosos e Suas Ligas não Especificados Anteriormente 
-     "24512",		          #          Fundição de Ferro e Aço 
-     "25314",		          #          Produção de forjados de aço e de metais nãoferrosos e suas ligas 
-     "24521",		          #          Fundição de Metais NãoFerrosos e Suas Ligas 
-     "32116")		          #          Lapidação de Gemas e Fabricação de Artefatos de Ourivesaria e Joalheria 
+   c("20126",	  #    Fabricação de Intermediários para Fertilizantes 
+     "20134",    #    Fabricação de Adubos e Fertilizantes 
+     "23206",    #    Fabricação de Cimento 
+     "23303",    #    Fabricação de Artefatos de Concreto, Cimento, Fibrocimento, Gesso e Materiais Semelhantes 
+     "23419",    #    Fabricação de Produtos Cerâmicos Refratários 
+     "23427",    #    Fabricação de Produtos Cerâmicos NãoRefratários para Uso Estrutural na Construção 
+     "23494",    #    Fabricação de Produtos Cerâmicos NãoRefratários não Especificados Anteriormente 
+     "23915",    #    Aparelhamento e Outros Trabalhos em Pedras 
+     "23923",    #    Fabricação de Cal e Gesso 
+     "23991",    #    Fabricação de Produtos de Minerais NãoMetálicos não Especificados Anteriormente 
+     "24113",    #    Produção de FerroGusa 
+     "24121",    #    Produção de Ferroligas 
+     "24211",    #    Produção de SemiAcabados de Aço 
+     "24229",    #    Produção de Laminados Planos de Aço 
+     "24237",    #    Produção de Laminados Longos de Aço 
+     "24245",    #    Produção de Relaminados, Trefilados e Perfilados de Aço 
+     "24318",    #    Produção de Tubos de Aço com Costura 
+     "24393",    #    Produção de Outros Tubos de Ferro e Aço 
+     "24415",    #    Metalurgia do Alumínio e Suas Ligas 
+     "24423",    #    Metalurgia dos Metais Preciosos 
+     "24431",    #    Metalurgia do Cobre 
+     "24491",    #    Metalurgia dos Metais NãoFerrosos e Suas Ligas não Especificados Anteriormente 
+     "24512",    #    Fundição de Ferro e Aço 
+     "25314",    #    Produção de forjados de aço e de metais nãoferrosos e suas ligas 
+     "24521",    #    Fundição de Metais NãoFerrosos e Suas Ligas 
+     "32116")    #    Lapidação de Gemas e Fabricação de Artefatos de Ourivesaria e Joalheria 
  
  
  # __________ SUBCLASSES alvo na Seção C ----
- 
- subclasses_alvo_SECAO_C <- 
+  subclasses_alvo_SECAO_C <- 
    cnae[cnae$classe %in% classes_alvo_SECAO_C & cnae$subclasse != 0, c("subclasse")]
 
-df_Transformação <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_C, ]
-          
+  df_Transformação <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_C, ]
 ```
+
+### Estoque por GRUPO na Transformação Mineral
+
+```{r  , echo=FALSE}
+kable(arrange(
+  summarise(
+    group_by(
+      estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_C & estoque_trabalhadores$data == "2021.01.01",], classe.descrição), sum(estoqueref)),
+  desc(`sum(estoqueref)`)), allign = "c")
+
+```
+
+### Transformação por Grupo e Semestre
+
+Na Transformação Mineral, o Grupo que mais contratou foi Fabricação de produtos cerâmicos (9419), seguido por Fabricação de artefatos de concreto, cimento, fibrocimento, gesso e materiais semelhantes (6835) e Aparelhamento de pedras e fabricação de outros produtos de minerais não metálicos (4465). Essa criação de postos deu-se sobretudo na região SE.
 
 ```{r Transformação_BR_Grupo_semestre, echo=FALSE, message=FALSE}
 
@@ -385,9 +450,9 @@ df_Transformação_BR_Grupo_semestre <-
         "trimestre",
         'competência'
       )], grupo, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -400,7 +465,11 @@ df_Transformação_BR_Grupo_semestre <-
     "salário_mediana",
     "salário_medio"
   )] 
+
+kable(arrange(df_Transformação_BR_Grupo_semestre, desc(Saldo_da_Movimentação)), allign = "c")
 ```
+
+### Saldos da Transformação por UF e Semestre
 
 ```{r Tranformação_UF_semestre, echo=FALSE, message=FALSE}
 
@@ -421,9 +490,9 @@ df_Transformacao_UF_semestre <-
         "trimestre",
         'competência'
       )], UF_sigla, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
       )[, c(
     "UF_sigla",
     "semestre",
@@ -432,8 +501,11 @@ df_Transformacao_UF_semestre <-
     "salário_medio"
   )] 
 
+kable(arrange(df_Transformacao_UF_semestre, desc(semestre), desc(Saldo_da_Movimentação)), allign = "c")
+
 ```
 
+### Variação percentual por UF na Transformação Mineral
 
 ```{r Transformacao_Variacao_Estoque_II_SEM, echo=FALSE, message=FALSE}
 # estoque por UF em 1/jul/2020
@@ -461,8 +533,12 @@ a$Variacao_relativa_Estoque_II_SEM <-
 
 df_Transformacao_Variacao_Estoque_II_SEM <- a
 
+kable(arrange(df_Transformacao_Variacao_Estoque_II_SEM, desc(Variacao_relativa_Estoque_II_SEM)), allign = "c")
+
+
 ```
 
+### Variação percentual por GRUPO na Transformação Mineral
 
 ```{r Transformacao_Grupos_Variacao_Estoque_II_SEM, echo=FALSE, message=FALSE}
 
@@ -493,6 +569,16 @@ df_Transformacao_Grupos_Variacao_Estoque_II_SEM <- a
 
 ```
 
+### Variação percentual por GRUPO na Transformação Mineral
+
+```{r  , echo=FALSE}
+kable(arrange(df_Transformacao_Grupos_Variacao_Estoque_II_SEM, desc(Variacao_relativa_Estoque_II_SEM)), allign = "c")
+
+```
+
+### Transformação por UF, Grupo e Semestre
+
+O fechamento de vagas tem como destaque a Siderurgia, em MG (-307) e Fabricação de produtos químicos inorgânicos, no RS (-262).
 
 ```{r Transformação_UF_Grupo_Semestre, echo=FALSE, message=FALSE}
 
@@ -509,9 +595,9 @@ df_Transformação_UF_Grupo_Semestre <-
         "semestre",
         "trimestre"
       )], grupo, UF_sigla, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -525,7 +611,10 @@ df_Transformação_UF_Grupo_Semestre <-
     "salário_medio"
   )] 
 
+kable(arrange(df_Transformação_UF_Grupo_Semestre, desc(Saldo_da_Movimentação)),  allign = "c")
 ```
+
+### Transformação por UF, Subclasse e Semestre
 
 ```{r Transformação_UF_Subclasse_Semestre, echo=FALSE, message=FALSE}
 
@@ -542,9 +631,9 @@ df_Transformação_UF_Subclasse_Semestre <-
         "semestre",
         "trimestre"
       )], subclasse, UF_sigla, semestre),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe != 0 &
@@ -558,7 +647,11 @@ df_Transformação_UF_Subclasse_Semestre <-
     "salário_medio"
   )] 
 
+kable(arrange(df_Transformação_UF_Subclasse_Semestre, desc(Saldo_da_Movimentação)),  allign = "c")
+
 ```
+
+### Transformação por Município, Grupo e Semestre
 
 ```{r Transformação_Município_Grupo_Semestre, echo=FALSE, message=FALSE}
 
@@ -576,9 +669,9 @@ df_Transformação_Município_Grupo_Semestre <-
         "semestre",
         "trimestre"
       )], grupo, Município),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -592,7 +685,13 @@ df_Transformação_Município_Grupo_Semestre <-
     "salário_medio"
   )] 
 
+kable(head(arrange(df_Transformação_Município_Grupo_Semestre, desc(Saldo_da_Movimentação)), 10), caption = "Maiores", allign = "c")
+
+kable(head(arrange(df_Transformação_Município_Grupo_Semestre, Saldo_da_Movimentação), 5), caption = "Menores", allign = "c")
+
 ```
+
+### Transformação por Município, Subclasse e Semestre
 
 ```{r Transformação_Município_Subclasse_Semestre, echo=FALSE, message=FALSE}
 
@@ -610,9 +709,9 @@ df_Transformação_Município_Subclasse_Semestre <-
         "semestre",
         "trimestre"
       )], subclasse, Município),
-      "Saldo_da_Movimentação" = sum(saldomovimentação),
-      "salário_mediana" = round(median(salário), 1),
-      "salário_medio" = round(mean(salário), 1)
+      "Saldo_da_Movimentação" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_medio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe != 0 &
@@ -626,113 +725,6 @@ df_Transformação_Município_Subclasse_Semestre <-
     "salário_medio"
   )] 
 
-```
+kable(head(arrange(df_Transformação_Município_Subclasse_Semestre, desc(Saldo_da_Movimentação)), 10), allign = "c")
 
-### Extrativa por Grupo e Semestre
-
-Nacionalmente, os grupos que mais contrataram foram a extração de Extração de minério de ferro (2398) e Extração de pedra, areia e argila (1875). O único grupo com saldo de fechamento de vagas foi a Extração de carvão mineral (-31).
-
-```{r ,echo=FALSE}
-kable(arrange(df_Extrativa_BR_Grupo_semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-Na Extração de minério de ferro, as UFs com mais contratações são PA (1141) e MG (1046). Seguido por Extração de pedra, areia e argila, em MT (-85).
-
-### Saldos da Extrativa por UF e Semestre
-
-```{r ,echo=FALSE}
-kable(arrange(df_Extrativa_UF_semestre, desc(semestre), desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-#### Variação percentual por UF na Extrativa Mineral
-
-```{r  , echo=FALSE}
-kable(arrange(df_Extrativa_Variacao_Estoque_II_SEM, desc(Variacao_relativa_Estoque_II_SEM)), allign = "c")
-```
-
-### Extrativa por UF, Grupo e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Extrativa_UF_Grupo_Semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-### Extrativa por UF, Subclasse e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Extrativa_UF_Subclasse_Semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-### Extrativa por Município, Grupo e Semestre
-
-Metade das contratações no grupo Extração de minério de ferro centraram-se nos municípios de Parauapebas (719), Canaã dos Carajás (257) e Nova Lima (252).
-
-```{r  , echo=FALSE}
-kable(arrange(df_Extrativa_Município_Grupo_Semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-Mas também foi na Extração de minério de ferro que um município acusou mais fechamento de vagas, em Congonhas (-253)
-
-Por Subclasse e município, vemos que a Extração de minério de ferro, em Parauapebas, foi a que mais contratou (719), seguida de Canaã dos Carajás (257) e Nova Lima (252). Enquanto a que mais fechou vagas foi a Extração de minério de ferro, em Congonhas (-253).
-
-### Extrativa por Município, Subclasse e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Extrativa_Município_Subclasse_Semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-### Transformação por Grupo e Semestre
-
-Na Transformação Mineral, o Grupo que mais contratou foi Fabricação de produtos cerâmicos (9419), seguido por Fabricação de artefatos de concreto, cimento, fibrocimento, gesso e materiais semelhantes (6835) e Aparelhamento de pedras e fabricação de outros produtos de minerais não metálicos (4465). Essa criação de postos deu-se sobretudo na região SE.
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformação_BR_Grupo_semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-
-### Saldos da Transformação por UF e Semestre
-
-```{r ,echo=FALSE}
-kable(arrange(df_Transformacao_UF_semestre, desc(semestre), desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-#### Variação percentual por UF na Transformação Mineral
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformacao_Variacao_Estoque_II_SEM, desc(Variacao_relativa_Estoque_II_SEM)), allign = "c")
-```
-
-
-#### Variação percentual por GRUPO na Transformação Mineral
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformacao_Grupos_Variacao_Estoque_II_SEM, desc(Variacao_relativa_Estoque_II_SEM)), allign = "c")
-```
-
-
-### Transformação por UF, Grupo e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformação_UF_Grupo_Semestre, desc(Saldo_da_Movimentação)),  allign = "c")
-```
-
-O fechamento de vagas tem como destaque a Siderurgia, em MG (-307) e Fabricação de produtos químicos inorgânicos, no RS (-262).
-
-### Transformação por UF, Subclasse e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformação_UF_Subclasse_Semestre, desc(Saldo_da_Movimentação)),  allign = "c")
-```
-
-### Transformação por Município, Grupo e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformação_Município_Grupo_Semestre, desc(Saldo_da_Movimentação)), allign = "c")
-```
-
-Mas também foi na Extração de minério de ferro que um município acusou mais fechamento de vagas, em Congonhas (-253)
-
-### Transformação por Município, Subclasse e Semestre
-
-```{r  , echo=FALSE}
-kable(arrange(df_Transformação_Município_Subclasse_Semestre, desc(Saldo_da_Movimentação)), allign = "c")
 ```

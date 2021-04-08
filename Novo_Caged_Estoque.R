@@ -169,9 +169,9 @@ cnae <-
  
 
 # Estoque de trabalhadore no início de cada ano 
- # 
-# summarise(group_by(estoque_trabalhadores, data), sum(estoqueref))
- 
+  
+#            summarise(group_by(estoque_trabalhadores, data), sum(estoqueref))
+#            summarise(group_by(estoque_trabalhadores, data, UF_sigla), sum(estoqueref)) 
  
  # exportando em RDS ---- 
  
