@@ -1,0 +1,1117 @@
+---
+title: "Mercado de trabalho na mineração 2020: Estoques, Salários e Saldos de movimentação"
+output: 
+  html_document: 
+    theme: journal
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(kableExtra)
+```
+
+```{r carregamento, include=FALSE}
+
+movimentacao <- 
+  readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
+
+# delmitando por trimestre ----
+
+#movimentacao <- 
+#  movimentacao[movimentacao$trimestre == '2020.2',]
+
+# Estoque de Trabalhadores ----
+estoque_trabalhadores <- 
+   readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Estoque_Trabalhadores_NovoCaged_Completo.RDATA")
+
+
+# CNAE 2.3 ----
+source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
+
+# CUIDADO ! ATENÇÃO! OS MICRODADOS ESTÃO COM SUBCLASSE SEM '0' NA FRENTE. HÁ SUBCLASSES COM 7 E OUTRAS COM 6 DÍGITOS....
+# ______________________________________________________________________________________________----
+```
+
+```{r EXTRATIVA MINERAL: subclasses alvo, include=FALSE}
+
+# _____ lista subclasses_alvo na seção B (Extrativa Mineral - Exceto petróleo & Gás) ----
+subclasses_alvo_SECAO_B <-                    
+    c(#subclasse  denominação
+      "500301",	#Extração de carvão mineral
+      "500302",	#Beneficiamento de carvão mineral
+      "710301",	#Extração de minério de ferro
+      "710302",	#Pelotização, sinterização e outros beneficiamentos de minério de ferro
+      "721901",	#Extração de minério de alumínio
+      "721902",	#Beneficiamento de minério de alumínio
+      "722701",	#Extração de minério de estanho
+      "722702",	#Beneficiamento de minério de estanho
+      "723501",	#Extração de minério de manganês
+      "723502",	#Beneficiamento de minério de manganês
+      "724301",	#Extração de minério de metais preciosos
+      "724302",	#Beneficiamento de minério de metais preciosos
+      "725100",	#Extração de minerais radioativos
+      "729401",	#Extração de minérios de nióbio e titânio
+      "729402",	#Extração de minério de tungstênio
+      "729403",	#Extração de minério de níquel
+      "729404",	#Extração de minérios de cobre, chumbo, zinco e outros minerais metálicos não ferrosos não especificados anteriormente
+      "729405",	#Beneficiamento de minérios de cobre, chumbo, zinco e outros minerais metálicos não ferrosos não especificados anteriormente
+      "810001",	#Extração de ardósia e beneficiamento associado
+      "810002",	#Extração de granito e beneficiamento associado
+      "810003",	#Extração de mármore e beneficiamento associado
+      "810004",	#Extração de calcário e dolomita e beneficiamento associado
+      "810005",	#Extração de gesso e caulim
+      "810006",	#Extração de areia, cascalho ou pedregulho e beneficiamento associado
+      "810007",	#Extração de argila e beneficiamento associado
+      "810008",	#Extração de saibro e beneficiamento associado
+      "810009",	#Extração de basalto e beneficiamento associado
+      "810010",	#Beneficiamento de gesso e caulim associado à extração
+      "810099",	#Extração e britamento de pedras e outros materiais para construção e beneficiamento associado
+      "891600",	#Extração de minerais para fabricação de adubos, fertilizantes e outros produtos químicos
+      "892401",	#Extração de sal marinho
+      "892402",	#Extração de salgema
+      "892403",	#Refino e outros tratamentos do sal
+      "893200",	#Extração de gemas (pedras preciosas e semipreciosas)
+      "899101",	#Extração de grafita
+      "899102",	#Extração de quartzo
+      "899103",	#Extração de amianto
+      "899199",	#Extração de outros minerais não metálicos não especificados anteriormente
+      "990401",	#Atividades de apoio à extração de minério de ferro
+      "990402",	#Atividades de apoio à extração de minerais metálicos não ferrosos
+      "990403"	#Atividades de apoio à extração de minerais não metálicos
+  )
+
+# _____ delimitando df por subclasses alvo
+          df_Extrativa <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B, ]
+    
+```
+
+***
+
+<br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+###  Estoque e Saldos de Trabalhadores por Trimestre	
+
+</td></tr>
+<tr><td>
+
+```{r Nacional por Trimestre, echo=FALSE, message=FALSE}
+
+df_Estoques <- 
+  summarise(group_by(movimentacao, trimestre), "Saldo" = sum(saldomovimentação))
+
+df_Estoques$Estoque_Trimestre <- NA
+df_Estoques$Estoque_Trimestre[1] <- summarise(estoque_trabalhadores[estoque_trabalhadores$data == "2020.01.01",], "Estoque 01JAN2020" = sum(estoqueref))[1,] + df_Estoques$Saldo[1] 
+df_Estoques$Estoque_Trimestre[2] <- df_Estoques$Estoque_Trimestre[1] + df_Estoques$Saldo[2] 
+df_Estoques$Estoque_Trimestre[3] <- df_Estoques$Estoque_Trimestre[2] + df_Estoques$Saldo[3] 
+df_Estoques$Estoque_Trimestre[4] <- df_Estoques$Estoque_Trimestre[3] + df_Estoques$Saldo[4] 
+
+kableExtra::kable(df_Estoques, caption = "Estoques e Saldos de Trabalhadores", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE, )
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r Estoques e Saldos por Trimestre, echo=FALSE, message=FALSE}
+
+df_Estoques_Extrativa <- 
+  summarise(group_by(movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B,], trimestre), "Saldo" = sum(saldomovimentação))
+
+df_Estoques_Extrativa$Estoque_Trimestre <- NA
+df_Estoques_Extrativa$Estoque_Trimestre[1] <- summarise(estoque_trabalhadores[estoque_trabalhadores$data == "2020.01.01" & estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_B,], "Estoque 01JAN2020" = sum(estoqueref))[1,] + df_Estoques_Extrativa$Saldo[1] 
+df_Estoques_Extrativa$Estoque_Trimestre[2] <- df_Estoques_Extrativa$Estoque_Trimestre[1] + df_Estoques_Extrativa$Saldo[2] 
+df_Estoques_Extrativa$Estoque_Trimestre[3] <- df_Estoques_Extrativa$Estoque_Trimestre[2] + df_Estoques_Extrativa$Saldo[3] 
+df_Estoques_Extrativa$Estoque_Trimestre[4] <- df_Estoques_Extrativa$Estoque_Trimestre[3] + df_Estoques_Extrativa$Saldo[4] 
+
+kableExtra::kable(df_Estoques_Extrativa, caption = "Estoques e Saldos na Extrativa Mineral", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td></tr></table>
+<br><br><br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### Extrativa Mineral por Grupo e Trimestre
+
+</td></tr>
+<tr><td>
+```{r Extrativa_Grupo_SALDOS, echo=FALSE, message=FALSE}
+
+df_Extrativa_Grupo_Saldo <-
+  left_join(
+    summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c(
+        '2020.1',
+        '2020.2',
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "UF_sigla",
+        "município",
+        "seção",
+        "grupo",
+        "classe",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "trimestre",
+        'competência'
+      )], grupo, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    "trimestre",
+    "Saldo"
+  )]
+
+
+kable(
+  spread(df_Extrativa_Grupo_Saldo, key = trimestre, value = Saldo), 
+  allign = "c", caption = "Saldos Extrativa Mineral por Grupo") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r Extrativa_Grupo_Salários, echo=FALSE, message=FALSE}
+
+df_Extrativa_Grupo_Salario <-
+  left_join(
+    summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c(
+        '2020.1',
+        '2020.2',
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "UF_sigla",
+        "município",
+        "seção",
+        "grupo",
+        "classe",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "trimestre",
+        'competência'
+      )], grupo, trimestre),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    "trimestre",
+    "salário_médio"
+  )]
+
+kable(
+  spread(df_Extrativa_Grupo_Salario, key = trimestre, value = salário_médio), 
+  allign = "c", caption = "Salários da Extrativa Mineral por Grupo") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td></tr></table>
+<br><br><br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### Extrativa Mineral por por UF_sigla e Trimestre
+</td></tr>
+<tr><td>
+
+```{r Extrativa_UF_Salário, echo=FALSE, message=FALSE}
+
+df_Extrativa_UF_Salário <-
+  summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c(
+        '2020.1', 
+        '2020.2', 
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "UF_sigla",
+        "município",
+        "seção",
+        "grupo",
+        "classe",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "trimestre",
+        'competência'
+      )], UF_sigla, trimestre),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+      )[, c(
+    "UF_sigla",
+    "trimestre",
+    "salário_médio"
+  )] 
+
+
+kable(spread(df_Extrativa_UF_Salário, key = trimestre, value = salário_médio), allign = "c") %>% kable_styling(bootstrap_options = "striped", stripe_color = "Light Sky Blue", full_width = FALSE)
+
+```
+
+</td></tr></table>
+<br><br><br>
+
+<div style="text-align:center">
+
+### Variação percentual e Estoques por UF na Extrativa Mineral
+
+</div>
+
+```{r Extrativa_Variacao_Estoque_II_SEM, echo=FALSE, message=FALSE}
+
+# Saldos por UF
+df_Extrativa_UF_Saldos <-
+  summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c(
+        '2020.1', 
+        '2020.2', 
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "UF_sigla",
+        "saldomovimentação",
+        "trimestre"
+      )], UF_sigla, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE)
+      )[, c(
+    "UF_sigla",
+    "trimestre",
+    "Saldo"
+  )] 
+
+
+# estoque por UF 
+a <- 
+  left_join(
+  summarise(
+    group_by(
+      estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_B & 
+                            estoque_trabalhadores$data == "2020.01.01",], UF_sigla),
+  "Estoque_01Jan" = sum(estoqueref)),                 #  estoque por UF em 1/jul/2020
+  spread(
+    df_Extrativa_UF_Saldos,
+    key = "trimestre", value = "Saldo")[,c("UF_sigla", "2020.1", "2020.2", "2020.3", "2020.4")], 
+  by = c("UF_sigla"))
+  
+a$delta_01TRI <- 
+  round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 4)
+a$delta_02TRI <- 
+  round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 4)
+a$delta_03TRI <- 
+  round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 4)
+a$delta_04TRI <- 
+  round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 4)
+
+df_Extrativa_Variacao_Estoque <- a
+
+kable(df_Extrativa_Variacao_Estoque, allign = "c", caption = "Estoque, Saldos e Variações Trimestrais") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+<div style="text-align:center">
+
+### Saldos na Extrativa por UF_sigla, Grupo e Trimestre
+
+</div>
+
+```{r Extrativa_UF_Grupo_Trimestre, echo=FALSE, message=FALSE}
+
+df_Extrativa_UF_Grupo_Trimestre <-
+  left_join(
+    summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c("2020.3"), c(
+        "competência",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], grupo, UF_sigla, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    "UF_sigla",
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+
+kable(head(arrange(df_Extrativa_UF_Grupo_Trimestre, desc(Saldo)), 10), caption = "Grupos e UFs com Maiores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+```{r  , echo=FALSE, message=FALSE}
+kable(head(arrange(df_Extrativa_UF_Grupo_Trimestre, Saldo), 10), caption = "Grupos e UFs com Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+<br><br>
+
+<div style="text-align:center">
+
+### Extrativa por UF_sigla, Subclasse e Trimestre
+
+</div>
+
+```{r Extrativa_UF_Subclasse_Trimestre, echo=FALSE, message=FALSE}
+
+df_Extrativa_UF_Subclasse_Trimestre <-
+  left_join(
+    summarise(
+      group_by(
+        df_Extrativa[df_Extrativa$trimestre %in% c("2020.3"), c(
+        "competência",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], subclasse, UF_sigla, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse != 0, c("subclasse", "denominação")],
+    by = "subclasse"
+  )[, c(
+    "denominação",
+    "UF_sigla",
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+
+kable(head(arrange(df_Extrativa_UF_Subclasse_Trimestre, desc(Saldo)), 10), caption = "Subclasses e UFs com Maiores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+```{r , echo=FALSE, message=FALSE}
+
+kable(head(arrange(df_Extrativa_UF_Subclasse_Trimestre, (Saldo)), 10), caption = "Subclasses e UFs com Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+<div style="text-align:center">
+
+### Extrativa por Município, Grupo e Trimestre
+
+</div>
+
+```{r Extrativa_Município_Grupo_Trimestre, echo=FALSE, message=FALSE}
+
+df_Extrativa_Município_Grupo_Trimestre <-
+  left_join(
+    summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c("2020.3"), c(
+        "competência",
+        "Município",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], grupo, Município),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    'Município',
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+
+kable(head(arrange(df_Extrativa_Município_Grupo_Trimestre, desc(Saldo)), 5), caption = "Grupos e Municípios com Maiores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+```{r  , echo=FALSE, message=FALSE}
+kable(head(arrange(df_Extrativa_Município_Grupo_Trimestre, Saldo), 5), caption = "Grupos e Municípios com Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+<div style="text-align:center">
+
+### Extrativa por Município, Subclasse e Trimestre
+
+</div>
+
+```{r Extrativa_Município_Subclasse_Trimestre, echo=FALSE, message=FALSE}
+
+df_Extrativa_Município_Subclasse_Trimestre <-
+  left_join(
+    summarise(
+      group_by(df_Extrativa[df_Extrativa$trimestre %in% c("2020.3"), c(
+        "competência",
+        "Município",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], subclasse, Município),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse != 0, c("subclasse", "denominação")],
+    by = "subclasse"
+  )[, c(
+    "denominação",
+    'Município',
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+kable(head(arrange(df_Extrativa_Município_Subclasse_Trimestre, desc(Saldo)), 5), caption = "Subclasses e Municípios com Maiores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+```{r      , echo=FALSE, message=FALSE}
+kable(head(arrange(df_Extrativa_Município_Subclasse_Trimestre, (Saldo)), 5), caption = "Subclasses e Municípios com Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+```{r INDÚSTRIA DE TRANSFORMAÇÃO (MINERAL): subclasses alvo, include=FALSE}
+
+ # _____ Lista classes Alvo na Seção C (Indústria de Transformação Relacionada não associada/consecutiva à mineração) ----
+ 
+ classes_alvo_SECAO_C <- 
+   c("20126",	  #    Fabricação de Intermediários para Fertilizantes 
+     "20134",    #    Fabricação de Adubos e Fertilizantes 
+     "23206",    #    Fabricação de Cimento 
+     "23303",    #    Fabricação de Artefatos de Concreto, Cimento, Fibrocimento, Gesso e Materiais Semelhantes 
+     "23419",    #    Fabricação de Produtos Cerâmicos Refratários 
+     "23427",    #    Fabricação de Produtos Cerâmicos NãoRefratários para Uso Estrutural na Construção 
+     "23494",    #    Fabricação de Produtos Cerâmicos NãoRefratários não Especificados Anteriormente 
+     "23915",    #    Aparelhamento e Outros Trabalhos em Pedras 
+     "23923",    #    Fabricação de Cal e Gesso 
+     "23991",    #    Fabricação de Produtos de Minerais NãoMetálicos não Especificados Anteriormente 
+     "24113",    #    Produção de FerroGusa 
+     "24121",    #    Produção de Ferroligas 
+     "24211",    #    Produção de SemiAcabados de Aço 
+     "24229",    #    Produção de Laminados Planos de Aço 
+     "24237",    #    Produção de Laminados Longos de Aço 
+     "24245",    #    Produção de Relaminados, Trefilados e Perfilados de Aço 
+     "24318",    #    Produção de Tubos de Aço com Costura 
+     "24393",    #    Produção de Outros Tubos de Ferro e Aço 
+     "24415",    #    Metalurgia do Alumínio e Suas Ligas 
+     "24423",    #    Metalurgia dos Metais Preciosos 
+     "24431",    #    Metalurgia do Cobre 
+     "24491",    #    Metalurgia dos Metais NãoFerrosos e Suas Ligas não Especificados Anteriormente 
+     "24512",    #    Fundição de Ferro e Aço 
+     "25314",    #    Produção de forjados de aço e de metais nãoferrosos e suas ligas 
+     "24521",    #    Fundição de Metais NãoFerrosos e Suas Ligas 
+     "32116")    #    Lapidação de Gemas e Fabricação de Artefatos de Ourivesaria e Joalheria 
+ 
+ 
+ # __________ SUBCLASSES alvo na Seção C ----
+  subclasses_alvo_SECAO_C <- 
+   cnae[cnae$classe %in% classes_alvo_SECAO_C & cnae$subclasse != 0, c("subclasse")]
+
+  df_Transformação <- movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_C, ]
+  
+```
+
+
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### TRANSFORMAÇÃO Mineral por Grupo e Trimestre
+
+</td></tr>
+<tr><td>
+```{r Transformação_Grupo_SALDOS, echo=FALSE, message=FALSE}
+
+df_Transformação_Grupo_Saldo <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c(
+        '2020.1',
+        '2020.2',
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "grupo",
+        "saldomovimentação",
+        "trimestre",
+        'competência'
+      )], grupo, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    "trimestre",
+    "Saldo"
+  )]
+
+
+kable(
+  spread(df_Transformação_Grupo_Saldo, key = trimestre, value = Saldo), 
+  allign = "c", caption = "Saldos Transformação Mineral por Grupo") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r Transformação_Grupo_Salários, echo=FALSE, message=FALSE}
+
+df_Transformação_Grupo_Salario <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c(
+        '2020.1',
+        '2020.2',
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "grupo",
+        "salário",
+        "trimestre",
+        'competência'
+      )], grupo, trimestre),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    "trimestre",
+    "salário_médio"
+  )]
+
+kable(
+  spread(df_Transformação_Grupo_Salario, key = trimestre, value = salário_médio), 
+  allign = "c", caption = "Salários da Transformação Mineral por Grupo") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td></tr></table>
+
+<br><br><br>
+
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### Transformação Mineral por Classe e Trimestre
+
+</td></tr>
+<tr><td>
+```{r Transformação_Classe_SALDOS, echo=FALSE, message=FALSE}
+
+df_Transformação_Classe_Saldo <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c(
+        '2020.1',
+        '2020.2',
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "classe",
+        "saldomovimentação",
+        "salário",
+        "trimestre",
+        'competência'
+      )], classe, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse == 0, c("classe", "denominação")],
+    by = "classe"
+  )[, c(
+    "denominação",
+    "trimestre",
+    "Saldo"
+  )]
+
+
+kable(
+  spread(df_Transformação_Classe_Saldo, key = trimestre, value = Saldo), 
+  allign = "c", caption = "Saldos Transformação Mineral por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r Transformação_Classe_Salários, echo=FALSE, message=FALSE}
+
+df_Transformação_Classe_Salario <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c(
+        '2020.1',
+        '2020.2',
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "classe",
+        "saldomovimentação",
+        "salário",
+        "trimestre",
+        'competência'
+      )], classe, trimestre),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse == 0, c("classe", "denominação")],
+    by = "classe"
+  )[, c(
+    "denominação",
+    "trimestre",
+    "salário_médio"
+  )]
+
+kable(
+  spread(df_Transformação_Classe_Salario, key = trimestre, value = salário_médio), 
+  allign = "c", caption = "Salários da Transformação Mineral por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td></tr></table>
+
+
+<br><br><br>
+
+<div style="text-align:center">
+
+### Variação percentual e Estoques por UF na Transformação Mineral
+
+</div>
+
+```{r Transformação_Variacao_Estoque UF_sigla, echo=FALSE, message=FALSE}
+
+# Saldos por UF
+df_Transformação_UF_Saldos <-
+  summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c(
+        '2020.1', 
+        '2020.2', 
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "UF_sigla",  
+        "classe",
+        "saldomovimentação",
+        "trimestre"
+      )], UF_sigla, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE)
+      )
+
+
+# estoque por UF 
+a <- 
+  left_join(
+  summarise(
+    group_by(
+      estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_C & 
+                            estoque_trabalhadores$data == "2020.01.01",], UF_sigla),
+  "Estoque_01Jan" = sum(estoqueref)),                 #  estoque por UF em 1/jul/2020
+  spread(
+    df_Transformação_UF_Saldos,
+    key = "trimestre", value = "Saldo")[,c("UF_sigla", "2020.1", "2020.2", "2020.3", "2020.4")], 
+  by = c("UF_sigla"))
+  
+a$delta_01TRI <- 
+  round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 4)
+a$delta_02TRI <- 
+  round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 4)
+a$delta_03TRI <- 
+  round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 4)
+a$delta_04TRI <- 
+  round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 4)
+
+df_Transformação_Variacao_Estoque <- a
+
+kable(df_Transformação_Variacao_Estoque, allign = "c", caption = "Estoque, Saldos e Variações Trimestrais") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+<div style="text-align:center">
+
+### Variação percentual e Estoques por Classe na Transformação Mineral
+
+</div>
+
+```{r Transformação_Variacao_Estoque_Classes, echo=FALSE, message=FALSE}
+
+# Saldos por Classe
+df_Transformação_Classe_Saldos <-
+  left_join(
+  summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c(
+        '2020.1', 
+        '2020.2', 
+        '2020.3', 
+        '2020.4'
+        ), c(
+        "classe",
+        "saldomovimentação",
+        "trimestre"
+      )], classe, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE)
+      )[, c(
+    "classe",
+    "trimestre",
+    "Saldo"
+  )],
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse == 0, c("classe", "denominação")],
+    by = "classe"
+  )[, c(
+    "denominação",
+    "classe",
+    "trimestre",
+    "Saldo"
+  )] 
+
+df_Transformação_Classe_Saldos$classe <- 
+  as.character(df_Transformação_Classe_Saldos$classe)
+
+# estoque por Classe 
+a <- 
+  left_join(
+  summarise(
+    group_by(
+      estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_C & 
+                            estoque_trabalhadores$data == "2020.01.01",], classe),
+  "Estoque_01Jan" = sum(estoqueref)),                 #  estoque por UF em 1/jul/2020
+  spread(
+    df_Transformação_Classe_Saldos,
+    key = "trimestre", value = "Saldo")[,c("classe", "denominação", "2020.1", "2020.2", "2020.3", "2020.4")],
+  by = c("classe"))
+  
+a$delta_01TRI <- 
+  round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 4)
+a$delta_02TRI <- 
+  round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 4)
+a$delta_03TRI <- 
+  round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 4)
+a$delta_04TRI <- 
+  round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 4)
+
+df_Transformação_Variacao_Estoque <- a[,c("denominação", "Estoque_01Jan", "2020.1","2020.2","2020.3","2020.4","delta_01TRI", "delta_02TRI")]
+
+kable(df_Transformação_Variacao_Estoque, allign = "c", caption = "Estoque, Saldos e Variações por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br>
+
+
+
+```{r        , echo=FALSE, message=FALSE}
+### Estoque por GRUPO na Transformação Mineral
+
+#a <- 
+#  left_join(
+#    summarise(
+#      group_by(
+#        estoque_trabalhadores[estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_C & 
+#                            estoque_trabalhadores$data == "2020.01.01",], grupo.descrição),
+#  "Estoque_01Jan" = sum(estoqueref)),                 #  estoque por UF em 1/jul/2020
+#  spread(df_Transformação_BR_Grupo_trimestre[,c("denominação", "trimestre", "Saldo")], key = "trimestre", value = "Saldo", fill = 0)[,c("denominação", "2020.1", "2020.2", "2020.3", "2020.4")], by = c("grupo.descrição" = "denominação"))
+#  
+#a$delta_01SEM <- 
+#  round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 2)
+#a$delta_02SEM <- 
+#  round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 2)
+#a$delta_03SEM <- 
+#  round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 2)
+#a$delta_04SEM <- 
+#  round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 2)
+#
+#
+#estoque_Grupo_Trimestre <- a
+#
+#kable(arrange(estoque_Grupo_Trimestre, desc(`delta_03SEM`)), allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+<br><br><br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center>
+
+### Saldos na Transformacao por UF e Grupo 
+
+</td></tr>
+<tr><td>
+
+```{r Transformacao_UF_Grupo_Trimestre, echo=FALSE, message=FALSE}
+
+df_Transformação_UF_Grupo_Trimestre <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c("2020.3"), c(
+        "competência",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], grupo, UF_sigla, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    "UF_sigla",
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+
+kable(head(arrange(df_Transformação_UF_Grupo_Trimestre, desc(Saldo)), 10), caption = "MAIORES SALDOS", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r      , echo=FALSE, message=FALSE}
+kable(head(arrange(df_Transformação_UF_Grupo_Trimestre, (Saldo)), 10), caption = "MENORES", allign = "c") %>% kable_styling(bootstrap_options = "striped")
+```
+
+</td></tr></table>
+
+<br><br><br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### Transformacao por UF e Subclasse 
+
+</td></tr>
+<tr><td>
+
+```{r Transformacao_UF_Subclasse_Trimestre, echo=FALSE, message=FALSE}
+
+df_Transformação_UF_Subclasse_Trimestre <-
+  left_join(
+    summarise(
+      group_by(
+        df_Transformação[df_Transformação$trimestre %in% c("2020.3"), c(
+        "competência",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], subclasse, UF_sigla, trimestre),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse != 0, c("subclasse", "denominação")],
+    by = "subclasse"
+  )[, c(
+    "denominação",
+    "UF_sigla",
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+
+kable(head(arrange(df_Transformação_UF_Subclasse_Trimestre, desc(Saldo)), 10), caption = "MAIORES SALDOS", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r      , echo=FALSE, message=FALSE}
+
+kable(head(arrange(df_Transformação_UF_Subclasse_Trimestre, (Saldo)), 10), caption = "MENORES", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td></tr></table>
+
+
+<br><br><br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### Transformacao por Município e Grupo
+
+</td></tr>
+<tr><td>
+
+```{r Transformacao_Município_Grupo_Trimestre, echo=FALSE, message=FALSE}
+
+df_Transformação_Município_Grupo_Trimestre <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c("2020.3"), c(
+        "competência",
+        "Município",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], grupo, Município),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe == 0 &
+           cnae$subclasse == 0, c("grupo", "denominação")],
+    by = "grupo"
+  )[, c(
+    "denominação",
+    'Município',
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+
+kable(head(arrange(df_Transformação_Município_Grupo_Trimestre, desc(Saldo)), 5), caption = "Maiores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r      , echo=FALSE, message=FALSE}
+kable(head(arrange(df_Transformação_Município_Grupo_Trimestre, Saldo), 5), caption = "Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+</td></tr></table>
+
+<br><br><br>
+
+<table border = "0" width = "100%">
+<tr><td colspan = 3 align = center> 
+
+### Transformacao por Município, Subclasse e Trimestre
+
+</td></tr>
+<tr><td>
+
+```{r Transformacao_Município_Subclasse_Trimestre, echo=FALSE, message=FALSE}
+
+df_Transformação_Município_Subclasse_Trimestre <-
+  left_join(
+    summarise(
+      group_by(df_Transformação[df_Transformação$trimestre %in% c("2020.3"), c(
+        "competência",
+        "Município",
+        "grupo",
+        "subclasse",
+        "saldomovimentação",
+        "salário",
+        "UF_sigla",
+        "trimestre"
+      )], subclasse, Município),
+      "Saldo" = sum(saldomovimentação, na.rm = TRUE),
+      "salário_mediana" = round(median(salário, na.rm = TRUE), 2),
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
+    ),
+    cnae[cnae$grupo != 0 &
+           cnae$classe != 0 &
+           cnae$subclasse != 0, c("subclasse", "denominação")],
+    by = "subclasse"
+  )[, c(
+    "denominação",
+    'Município',
+    "Saldo",
+    "salário_mediana",
+    "salário_médio"
+  )] 
+
+kable(head(arrange(df_Transformação_Município_Subclasse_Trimestre, desc(Saldo)), 5), caption = "Subclasses e Municípios com Maiores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+
+```{r      , echo=FALSE, message=FALSE}
+kable(head(arrange(df_Transformação_Município_Subclasse_Trimestre, (Saldo)), 5), caption = "Subclasses e Municípios com Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+</td></tr></table>
+
+<br><br>
+
+
+
