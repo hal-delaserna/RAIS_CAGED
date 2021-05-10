@@ -112,13 +112,13 @@ df_Estoques$Estoque_Trimestre[2] <- df_Estoques$Estoque_Trimestre[1] + df_Estoqu
 df_Estoques$Estoque_Trimestre[3] <- df_Estoques$Estoque_Trimestre[2] + df_Estoques$Saldo[3] 
 df_Estoques$Estoque_Trimestre[4] <- df_Estoques$Estoque_Trimestre[3] + df_Estoques$Saldo[4] 
 
-kableExtra::kable(df_Estoques, caption = "Estoques e Saldos de Trabalhadores", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE, )
+kableExtra::kable(df_Estoques, caption = "TODAS AS SEÇÕES", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE, )
 
 ```
 
 </td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
 
-```{r Estoques e Saldos por Trimestre, echo=FALSE, message=FALSE}
+```{r Estoques e Saldos na Extrativa, echo=FALSE, message=FALSE}
 
 df_Estoques_Extrativa <- 
   summarise(group_by(movimentacao[movimentacao$subclasse %in% subclasses_alvo_SECAO_B,], trimestre), "Saldo" = sum(saldomovimentação))
@@ -129,7 +129,7 @@ df_Estoques_Extrativa$Estoque_Trimestre[2] <- df_Estoques_Extrativa$Estoque_Trim
 df_Estoques_Extrativa$Estoque_Trimestre[3] <- df_Estoques_Extrativa$Estoque_Trimestre[2] + df_Estoques_Extrativa$Saldo[3] 
 df_Estoques_Extrativa$Estoque_Trimestre[4] <- df_Estoques_Extrativa$Estoque_Trimestre[3] + df_Estoques_Extrativa$Saldo[4] 
 
-kableExtra::kable(df_Estoques_Extrativa, caption = "Estoques e Saldos na Extrativa Mineral", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kableExtra::kable(df_Estoques_Extrativa, caption = "EXTRATIVA MINERAL", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -208,7 +208,7 @@ df_Extrativa_Grupo_Salario <-
         "trimestre",
         'competência'
       )], grupo, trimestre),
-      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -314,13 +314,13 @@ a <-
     key = "trimestre", value = "Saldo")[,c("UF_sigla", "2020.1", "2020.2", "2020.3", "2020.4")], 
   by = c("UF_sigla"))
   
-a$delta_01TRI <- 
+a$var_01TRI <- 
   round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 4)
-a$delta_02TRI <- 
+a$var_02TRI <- 
   round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 4)
-a$delta_03TRI <- 
+a$var_03TRI <- 
   round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 4)
-a$delta_04TRI <- 
+a$var_04TRI <- 
   round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 4)
 
 df_Extrativa_Variacao_Estoque <- a
@@ -333,7 +333,7 @@ kable(df_Extrativa_Variacao_Estoque, allign = "c", caption = "Estoque, Saldos e 
 
 <div style="text-align:center">
 
-### Saldos na Extrativa por UF_sigla, Grupo e Trimestre
+### Saldos na Extrativa por UF, Grupo e Trimestre
 
 </div>
 
@@ -382,7 +382,7 @@ kable(head(arrange(df_Extrativa_UF_Grupo_Trimestre, Saldo), 10), caption = "Grup
 
 <div style="text-align:center">
 
-### Extrativa por UF_sigla, Subclasse e Trimestre
+### Extrativa por UF, Subclasse e Trimestre
 
 </div>
 
@@ -480,6 +480,8 @@ kable(head(arrange(df_Extrativa_Município_Grupo_Trimestre, desc(Saldo)), 5), ca
 kable(head(arrange(df_Extrativa_Município_Grupo_Trimestre, Saldo), 5), caption = "Grupos e Municípios com Menores Saldos", allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
+<br><br>
+
 <div style="text-align:center">
 
 ### Extrativa por Município, Subclasse e Trimestre
@@ -566,7 +568,47 @@ kable(head(arrange(df_Extrativa_Município_Subclasse_Trimestre, (Saldo)), 5), ca
   
 ```
 
+<br><br><br>
 
+### TRANSFORMAÇÃO MINERAL 
+
+***
+
+
+
+<table border = "0" width = "100%">
+<tr><td colspan = 1 align = center> 
+
+###  Estoque e Saldos de Trabalhadores na TRANSFORMAÇÃO MINERAL 
+
+</td></tr>
+<tr><td>
+
+```{r Estoques e Saldos na Transformação, echo=FALSE, message=FALSE}
+
+df_Estoques_Transformação <- 
+  summarise(group_by(df_Transformação, trimestre), "Saldo" = sum(saldomovimentação))
+
+df_Estoques_Transformação$Estoque_Trimestre <- NA
+df_Estoques_Transformação$Estoque_Trimestre[1] <- summarise(estoque_trabalhadores[estoque_trabalhadores$data == "2020.01.01" & estoque_trabalhadores$cnae20subclas %in% subclasses_alvo_SECAO_C,], "Estoque 01JAN2020" = sum(estoqueref))[1,] + df_Estoques_Transformação$Saldo[1] 
+df_Estoques_Transformação$Estoque_Trimestre[2] <- df_Estoques_Transformação$Estoque_Trimestre[1] + df_Estoques_Transformação$Saldo[2] 
+df_Estoques_Transformação$Estoque_Trimestre[3] <- df_Estoques_Transformação$Estoque_Trimestre[2] + df_Estoques_Transformação$Saldo[3] 
+df_Estoques_Transformação$Estoque_Trimestre[4] <- df_Estoques_Transformação$Estoque_Trimestre[3] + df_Estoques_Transformação$Saldo[4] 
+
+kableExtra::kable(df_Estoques_Transformação, caption = "Estoques e Saldos na Transformação Mineral", align = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+</td></tr></table>
+<br><br><br>
+
+
+
+
+
+
+
+<br><br>
 
 <table border = "0" width = "100%">
 <tr><td colspan = 3 align = center> 
@@ -606,7 +648,7 @@ df_Transformação_Grupo_Saldo <-
 
 kable(
   spread(df_Transformação_Grupo_Saldo, key = trimestre, value = Saldo), 
-  allign = "c", caption = "Saldos Transformação Mineral por Grupo") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  allign = "c", caption = "        SALDOS") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -628,7 +670,7 @@ df_Transformação_Grupo_Salario <-
         "trimestre",
         'competência'
       )], grupo, trimestre),
-      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe == 0 &
@@ -642,7 +684,7 @@ df_Transformação_Grupo_Salario <-
 
 kable(
   spread(df_Transformação_Grupo_Salario, key = trimestre, value = salário_médio), 
-  allign = "c", caption = "Salários da Transformação Mineral por Grupo") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  allign = "c", caption = "        SALÁRIOS") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -690,7 +732,7 @@ df_Transformação_Classe_Saldo <-
 
 kable(
   spread(df_Transformação_Classe_Saldo, key = trimestre, value = Saldo), 
-  allign = "c", caption = "Saldos Transformação Mineral por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  allign = "c", caption = "        SALDOS") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -713,7 +755,7 @@ df_Transformação_Classe_Salario <-
         "trimestre",
         'competência'
       )], classe, trimestre),
-      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 1)
+      "salário_médio" = round(mean(salário, na.rm = TRUE, trim = 0.01), 2)
     ),
     cnae[cnae$grupo != 0 &
            cnae$classe != 0 &
@@ -727,7 +769,7 @@ df_Transformação_Classe_Salario <-
 
 kable(
   spread(df_Transformação_Classe_Salario, key = trimestre, value = salário_médio), 
-  allign = "c", caption = "Salários da Transformação Mineral por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  allign = "c", caption = "        SALÁRIOS") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -775,13 +817,13 @@ a <-
     key = "trimestre", value = "Saldo")[,c("UF_sigla", "2020.1", "2020.2", "2020.3", "2020.4")], 
   by = c("UF_sigla"))
   
-a$delta_01TRI <- 
+a$var_01TRI <- 
   round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 4)
-a$delta_02TRI <- 
+a$var_02TRI <- 
   round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 4)
-a$delta_03TRI <- 
+a$var_03TRI <- 
   round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 4)
-a$delta_04TRI <- 
+a$var_04TRI <- 
   round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 4)
 
 df_Transformação_Variacao_Estoque <- a
@@ -847,18 +889,18 @@ a <-
     key = "trimestre", value = "Saldo")[,c("classe", "denominação", "2020.1", "2020.2", "2020.3", "2020.4")],
   by = c("classe"))
   
-a$delta_01TRI <- 
+a$var_01TRI <- 
   round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 4)
-a$delta_02TRI <- 
+a$var_02TRI <- 
   round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 4)
-a$delta_03TRI <- 
+a$var_03TRI <- 
   round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 4)
-a$delta_04TRI <- 
+a$var_04TRI <- 
   round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 4)
 
-df_Transformação_Variacao_Estoque <- a[,c("denominação", "Estoque_01Jan", "2020.1","2020.2","2020.3","2020.4","delta_01TRI", "delta_02TRI")]
+df_Transformação_Variacao_Estoque <- a[,c("denominação", "Estoque_01Jan", "2020.1","2020.2","2020.3","2020.4","var_01TRI", "var_02TRI")]
 
-kable(df_Transformação_Variacao_Estoque, allign = "c", caption = "Estoque, Saldos e Variações por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_Transformação_Variacao_Estoque, allign = "c", caption = "Estoque, Saldos e Variações por Classe") %>% kable_styling(bootstrap_options = "striped", full_width = TRUE)
 
 ```
 
@@ -878,19 +920,19 @@ kable(df_Transformação_Variacao_Estoque, allign = "c", caption = "Estoque, Sal
 #  "Estoque_01Jan" = sum(estoqueref)),                 #  estoque por UF em 1/jul/2020
 #  spread(df_Transformação_BR_Grupo_trimestre[,c("denominação", "trimestre", "Saldo")], key = "trimestre", value = "Saldo", fill = 0)[,c("denominação", "2020.1", "2020.2", "2020.3", "2020.4")], by = c("grupo.descrição" = "denominação"))
 #  
-#a$delta_01SEM <- 
+#a$var_01SEM <- 
 #  round(a$`2020.1`/(a$Estoque_01Jan + a$`2020.1`), digits = 2)
-#a$delta_02SEM <- 
+#a$var_02SEM <- 
 #  round(a$`2020.2`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2`), digits = 2)
-#a$delta_03SEM <- 
+#a$var_03SEM <- 
 #  round(a$`2020.3`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3`), digits = 2)
-#a$delta_04SEM <- 
+#a$var_04SEM <- 
 #  round(a$`2020.4`/(a$Estoque_01Jan + a$`2020.1` + a$`2020.2` + a$`2020.3` + a$`2020.4`), digits = 2)
 #
 #
 #estoque_Grupo_Trimestre <- a
 #
-#kable(arrange(estoque_Grupo_Trimestre, desc(`delta_03SEM`)), allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+#kable(arrange(estoque_Grupo_Trimestre, desc(`var_03SEM`)), allign = "c") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
