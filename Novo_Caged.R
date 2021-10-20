@@ -1,5 +1,5 @@
-#        rm(list = ls())
-#     options(editor = 'notepad')
+#  rm(list = ls())
+options(editor = 'notepad')
 library(tidyverse)
 library(lubridate)
 
@@ -13,7 +13,9 @@ geocod$GEOCOD <-
 # source(file = 'D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/Novo_Caged_Estoque.R')
 
 movimentacao <- 
-  readRDS(file = "./CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
+  readRDS(file = "./CSV_Data/Novo_Caged_microdados_2020_movimentacao_CNAE23_B_C.RDATA")
+  
+  # readRDS(file = "./CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
 
 # estabelecimento <- 
 #  readRDS(file = "./CSV_Data/Novo_Caged_microdados_ESTABELECIMENTOS_2020_secoes_CNAE23_B_C.RDATA")
@@ -368,7 +370,6 @@ BR <-
   source('./CSV_Data/RAIS_CAGED/CNAE_2_3.R')
  
 
-                        
  # _____ SUBCLASSES alvo na seção B (Extrativa Mineral - Exceto petróleo & Gás) ----
  subclasses_alvo_SECAO_B <-                    
    c(#subclasse  denominação
@@ -451,10 +452,8 @@ BR <-
  
  subclasses_alvo_SECAO_C <- 
    cnae[cnae$classe %in% classes_alvo_SECAO_C & cnae$subclasse != 0, c("subclasse")]
- 
- 
-# ******************************  CARREGAMENTO ****************************** ----
-#  _____ ***** ESTABELECIMENTOS ***** ----
+
+#  _____ CARREGAMENTO ESTABELECIMENTOS ****************** ----
   arquivos <- c(
     "CAGEDESTAB202001.txt",
     "CAGEDESTAB202002.txt",
@@ -531,6 +530,14 @@ BR <-
     left_join(estabelecimentos, geocod[, c("UF_sigla", "GEOCOD", "Município")], by = c("município" = "GEOCOD"))
   
   
+  # CBO - OCUPAÇÕES ----
+  cbo <- 
+    read.table(file = "./CSV_Data/RAIS_CAGED/CBO_Ocupacoes/CBO2002 - Ocupacao.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
+               colClasses = "character", encoding = 'ANSI', quote = "")
+    
+  estabelecimentos <- 
+    left_join(estabelecimentos, cbo, by = c(cbo2002ocupação = CO_CBO))   
+  
   # exportando em RDS ---- 
   
   saveRDS(estabelecimentos, file = "./CSV_Data/Novo_Caged_microdados_ESTABELECIMENTOS_2020_secoes_CNAE23_B_C.RDATA")
@@ -545,21 +552,27 @@ BR <-
  # _______________________________________________________________________|
  
  
- # _____ ***** MOVIMENTAÇAO ***** ----
+ # _____ CARREGAMENTO MOVIMENTAÇAO ****************** ----
  
  arquivos <- c(
-   "CAGEDMOV202001.txt",
-   "CAGEDMOV202002.txt",
-   "CAGEDMOV202003.txt",
-   "CAGEDMOV202004.txt",
-   "CAGEDMOV202005.txt",
-   "CAGEDMOV202006.txt",
-   "CAGEDMOV202007.txt",
-   "CAGEDMOV202008.txt",
-   "CAGEDMOV202009.txt",
-   "CAGEDMOV202010.txt",
-   "CAGEDMOV202011.txt",
-   "CAGEDMOV202012.txt"
+    "CAGEDMOV202001.txt",
+    "CAGEDMOV202002.txt",
+    "CAGEDMOV202003.txt",
+    "CAGEDMOV202004.txt",
+    "CAGEDMOV202005.txt",
+    "CAGEDMOV202006.txt",
+    "CAGEDMOV202007.txt",
+    "CAGEDMOV202008.txt",
+    "CAGEDMOV202009.txt",
+    "CAGEDMOV202010.txt",
+    "CAGEDMOV202011.txt",
+    "CAGEDMOV202012.txt",
+    "CAGEDMOV202101.txt",
+    "CAGEDMOV202102.txt",
+    "CAGEDMOV202103.txt",
+    "CAGEDMOV202104.txt",
+    "CAGEDMOV202105.txt",
+    "CAGEDMOV202106.txt"
    )
  
  
@@ -587,20 +600,31 @@ BR <-
          "NULL",	      #	horascontratuais
          "NULL",	#	raçacor
          "NULL",	#	sexo
-         "NULL",	#	tipoempregador
-         "NULL",	#	tipoestabelecimento
-         "NULL",	#	tipomovimentação
+         "character",	#	tipoempregador
+         "integer",	#	tipoestabelecimento
+         "character",	#	tipomovimentação
          "NULL",	#	tipodedeficiência
          "NULL",	#	indtrabintermitente
          "NULL",	#	indtrabparcial
          "numeric",	#	salário
-         "NULL",	#	tamestabjan
+         "character",	#	tamestabjan
          "NULL",	#	indicadoraprendiz
-         "NULL"	#	fonte
+         "character"	#	fonte
        ),
        stringsAsFactors = FALSE,
        encoding = "UTF-8"
        )
+   
+   df <- lista[[i]]
+   
+   df <- 
+     df[df$subclasse %in% c(
+       subclasses_alvo_SECAO_B, 
+       subclasses_alvo_SECAO_C),]
+   
+   lista[[i]] <- df
+   
+   
  }
  
  movimentacao <- 
@@ -612,9 +636,9 @@ BR <-
  
  movimentacao <- 
    movimentacao[movimentacao$subclasse %in% c(
-                                                 subclasses_alvo_SECAO_B), 
-                                                # subclasses_alvo_SECAO_C),
-                                                                              ]
+                                              subclasses_alvo_SECAO_B, 
+                                              subclasses_alvo_SECAO_C),
+                                                                        ]
  
  # ____ impondo trimestre
  movimentacao$trimestre <-
@@ -638,6 +662,8 @@ BR <-
  
  
  # _____ junção grupo - subclasse ----
+ source('./CSV_Data/RAIS_CAGED/CNAE_2_3.R')
+ 
  movimentacao <- 
    left_join(movimentacao, cnae[,c("grupo", "classe", "subclasse", "denominação")], by = c("subclasse"))   
  
@@ -653,9 +679,36 @@ BR <-
    left_join(movimentacao, geocod[, c("UF_sigla", "GEOCOD", "Município")], by = c("município" = "GEOCOD"))
  
  
+ # CBO - OCUPAÇÕES ----
+ cbo <- 
+   read.table(file = "./CSV_Data/RAIS_CAGED/CBO_Ocupacoes/CBO2002 - Ocupacao.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
+              colClasses = "character", encoding = 'ANSI', quote = "")
+ 
+ movimentacao <- 
+   left_join(movimentacao, cbo, by = c('cbo2002ocupação' = 'CO_CBO')) 
+ 
+ 
+ 
+ # Tipo de Movimentação ----  
+ tipodemovimentacao <- 
+   read.table(file = "./CSV_Data/RAIS_CAGED/Novo_Caged/tipomovimentação.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
+              colClasses = "character", encoding = 'UTF-8', quote = "")
+ 
+ movimentacao <- 
+   left_join(movimentacao, tipodemovimentacao, by = c("tipomovimentação" = 'Codigo'))
+ 
+ colnames(movimentacao) <- 
+   c("competência", "uf", "município", "seção", "subclasse", "saldomovimentação", 
+     "cbo2002ocupação", "categoria", "graudeinstrução", "tipoempregador", 
+     "tipoestabelecimento", "tipomovimentação", "salário", "tamestabjan", 
+     "fonte", "trimestre", "semestre", "grupo", "classe", "subclasse_denominação", 
+     "UF_sigla", "Município", "NO_CBO", "subclasse_Descricao")
+ 
+  
+ 
  # exportando em RDS ---- 
  
- saveRDS(movimentacao, file = "./CSV_Data/Novo_Caged_microdados_2020_secoes_CNAE23_B_C.RDATA")
+ saveRDS(movimentacao, file = "./CSV_Data/Novo_Caged_microdados_2021_movimentacao_secoes_CNAE23_B_C.RDATA")
  
  
  
@@ -674,5 +727,36 @@ BR <-
 #    2020.                 -1275857
 #    2020.                  1418547
  
+
+ # CBO - Eng de Minas
  
- 
+lista_CBO <-  
+  c( 
+ "214705",   #Engenheiro de minas Ocupação
+ "214710",   #Engenheiro de minas (beneficiamento) Ocupação
+ "214705",   #Engenheiro de minas (carvão) Sinônimo
+ "214715",   #Engenheiro de minas (lavra a céu aberto) Ocupação
+ "214720",   #Engenheiro de minas (lavra subterrânea) Ocupação
+ "214725",   #Engenheiro de minas (pesquisa mineral) Ocupação
+ "214730",   #Engenheiro de minas (planejamento) Ocupação
+ "214735",   #Engenheiro de minas (processo) Ocupação
+ "214740"    #Engenheiro de minas (projeto) Ocupação	
+         )
+
+
+movimentacao <-
+  movimentacao[movimentacao$cbo2002ocupação %in% lista_CBO, ]
+
+
+tipoestabelecimento <- 
+  read.table(file = "./CSV_Data/RAIS_CAGED/Novo_CAGED/tipoestabelecimento.csv", sep = ";", stringsAsFactors = FALSE, header = TRUE, 
+             encoding = 'UTF-8', quote = "")
+
+
+movimentacao <- 
+left_join(
+  movimentacao,
+  tipoestabelecimento,
+  by = c("tipoestabelecimento" = "CO_tipoestabelecimento")
+)
+
