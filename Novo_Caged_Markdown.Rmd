@@ -29,6 +29,10 @@ movimentacao <-
 estoque_trabalhadores <- 
    readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Estoque_Trabalhadores_NovoCaged_Completo.RDATA")
 
+# Estoque com ajuste de proporção-município (ver Estoque.R)
+# readRDS(EstoqueRefNovoCaged, file = "./CSV_Data/Novo_Caged_NovoCaged_2020_2021_secoes_CNAE23_B_C_Municipio_Ajustado.RDATA")
+
+
 
 # CNAE 2.3 ----
 source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
@@ -109,7 +113,7 @@ df_Extrativa_Estoque <-
                             estoque_trabalhadores$data == "2021.01.01",], UF_sigla),
   "Estoque_01Jan" = sum(estoqueref))                 #  estoque por UF em 1/jul/2020
   
-kable(df_Extrativa_Estoque, allign = "c", caption = "Quantidade de trabalhadores na subclasse Extração de gemas (pedras preciosas e semipreciosas) por UF") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_Extrativa_Estoque, allign = "c", caption = "Quantidade de trabalhadores por UF") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -134,7 +138,7 @@ df_Extrativa_Estoque_Mun <-
   
 kable(
   head(
-  arrange(df_Extrativa_Estoque_Mun, desc(Estoque_01Jan)), 20), allign = "c", caption = "Quantidade de vínculos trabalhistas na Extrativa Mineral por Município") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  arrange(df_Extrativa_Estoque_Mun, desc(Estoque_01Jan)), 20), allign = "c", caption = "Vínculos trabalhistas na Extrativa Mineral por Município") %>% kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 

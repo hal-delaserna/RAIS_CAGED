@@ -105,14 +105,25 @@ rm(list = ls(pattern = "[A-Z]{2}20[0-9]{2}"))
     
     colnames(RAIS_2019_VINC) <- colnames(RAIS_2010_VINC)
 
-    RAIS_2010_2019_VINC <- 
-      rbind(RAIS_2010_VINC, RAIS_2011_VINC, RAIS_2012_VINC, RAIS_2013_VINC, RAIS_2014_VINC, RAIS_2015_VINC, RAIS_2017_VINC, RAIS_2017_VINC, RAIS_2018_VINC, RAIS_2019_VINC)
+    RAIS_2010_2019_VINC <-
+      rbind(
+        # RAIS_2010_VINC,
+        # RAIS_2011_VINC,
+        # RAIS_2012_VINC,
+        # RAIS_2013_VINC,
+        # RAIS_2014_VINC,
+        # RAIS_2015_VINC,
+        # RAIS_2017_VINC,
+        # RAIS_2017_VINC,
+        RAIS_2018_VINC,
+        RAIS_2019_VINC
+      )
     
     
 rm(list = ls(pattern = "RAIS_VINC_PUB|RAIS_...._VINC"))
 
-RAIS_2010_2019_VINC$`Vínculo Ativo 31/12` <-
-  as.integer(RAIS_2010_2019_VINC$`Vínculo Ativo 31/12`)
+RAIS_2010_2019_VINC$Vínculo.Ativo.31.12 <-
+  as.integer(RAIS_2010_2019_VINC$Vínculo.Ativo.31.12)
 
 # Unindo Geocod ----
 
@@ -132,7 +143,7 @@ geocod$GEOCOD <-
 
 # Município de trabalho ----
 RAIS_2010_2019_VINC <- 
-  left_join(RAIS_2010_2019_VINC, geocod[,c("GEOCOD","Município","UF_sigla")], by = c("Mun Trab" = "GEOCOD"))
+  left_join(RAIS_2010_2019_VINC, geocod[,c("GEOCOD","Município","UF_sigla")], by = c("Mun.Trab" = "GEOCOD"))
 
 colnames(RAIS_2010_2019_VINC)[c(3,4,8,9)] <- c("cod_Mun_Trab", "cod_Mun_Sede", "Mun_Trab", "UF_Trab")
 
@@ -148,14 +159,14 @@ colnames(RAIS_2010_2019_VINC)[c(11,10)] <- c("Mun_Sede", "UF_Sede")
 # CNAE 2.3 ----
 source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
 
-RAIS_2010_2019_VINC$`CNAE 2.0 Subclasse` <- 
-  as.character(RAIS_2010_2019_VINC$`CNAE 2.0 Subclasse`)
+RAIS_2010_2019_VINC$CNAE.2.0.Subclasse <- 
+  as.character(RAIS_2010_2019_VINC$CNAE.2.0.Subclasse)
 
 
 RAIS_2010_2019_VINC <-
   left_join(RAIS_2010_2019_VINC,
             CNAE_Subclasses_2_0[, c("subclasse", "subclasse.descrição")],
-            by = c("CNAE 2.0 Subclasse" = "subclasse"))
+            by = c("CNAE.2.0.Subclasse" = "subclasse"))
 
 
 
