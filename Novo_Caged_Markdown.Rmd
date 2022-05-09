@@ -18,7 +18,7 @@ options(knitr.kable.NA = "")
 ```{r carregamento, include=FALSE}
 
 movimentacao <- 
-  readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Novo_Caged_microdados_2021_movimentacao_secoes_CNAE23_B_C.RDATA")
+  readRDS(file = "D:/Users/humberto.serna/Documents/D_Lake/Novo_Caged_microdados_2021_movimentacao_secoes_CNAE23_B_C.RDATA")
 
 # delmitando por trimestre ----
 
@@ -27,15 +27,15 @@ movimentacao <-
 
 # Estoque de Trabalhadores ----
 estoque_trabalhadores <- 
-   readRDS(file = "D:/Users/humberto.serna/Documents/CSV_Data/Estoque_Trabalhadores_NovoCaged_Completo.RDATA")
+   readRDS(file = "D:/Users/humberto.serna/Documents/D_Lake/Estoque_Trabalhadores_NovoCaged_Completo.RDATA")
 
 # Estoque com ajuste de proporção-município (ver Estoque.R)
-# readRDS(EstoqueRefNovoCaged, file = "./CSV_Data/Novo_Caged_NovoCaged_2020_2021_secoes_CNAE23_B_C_Municipio_Ajustado.RDATA")
+# readRDS(EstoqueRefNovoCaged, file = "./D_Lake/Novo_Caged_NovoCaged_2020_2021_secoes_CNAE23_B_C_Municipio_Ajustado.RDATA")
 
 
 
 # CNAE 2.3 ----
-source('D:/Users/humberto.serna/Documents/CSV_Data/RAIS_CAGED/CNAE_2_3.R')
+source('D:/Users/humberto.serna/Documents/D_Lake/RAIS_CAGED/CNAE_2_3.R')
 
 # CUIDADO ! ATENÇÃO! OS MICRODADOS ESTÃO COM SUBCLASSE SEM '0' NA FRENTE. HÁ SUBCLASSES COM 7 E OUTRAS COM 6 DÍGITOS....
 # ______________________________________________________________________________________________----
